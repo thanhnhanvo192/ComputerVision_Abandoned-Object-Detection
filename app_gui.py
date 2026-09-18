@@ -81,13 +81,20 @@ use_sample = False
 if uploaded_file is None and os.path.exists(sample_video_path):
     use_sample = st.checkbox(f"Hoặc dùng video mẫu sẵn có ({sample_video_path})", value=True)
 
-if uploaded_file is not None or use_sample:
     if uploaded_file is not None:
+        raw_name = uploaded_file.name
         tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
         tfile.write(uploaded_file.read())
         video_input_path = tfile.name
     else:
+        raw_name = os.path.basename(sample_video_path)
         video_input_path = sample_video_path
+
+    input_stem, input_ext = os.path.splitext(raw_name)
+    if not input_ext:
+        input_ext = ".mp4"
+    out_video_name = f"output_{input_stem}{input_ext}"
+    out_csv_name = f"alert_logs_{input_stem}.csv"
 
     cap = cv2.VideoCapture(video_input_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -138,9 +145,10 @@ if uploaded_file is not None or use_sample:
             st.stop()
 
         cap = cv2.VideoCapture(video_input_path)
-        output_video_path = os.path.join(config.OUTPUT_DIR, "web_output.mp4")
+        output_video_path = os.path.join(config.OUTPUT_DIR, out_video_name)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out_writer = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
 
         frame_idx = 0
         all_alert_records = []
@@ -206,9 +214,9 @@ if uploaded_file is not None or use_sample:
             if os.path.exists(output_video_path):
                 with open(output_video_path, "rb") as file:
                     st.download_button(
-                        label="📥 Tải xuống Video Kết quả (.mp4)",
+                        label=f"📥 Tải xuống Video Kết quả ({out_video_name})",
                         data=file,
-                        file_name="abandoned_object_output.mp4",
+                        file_name=out_video_name,
                         mime="video/mp4",
                         use_container_width=True
                     )
@@ -218,12 +226,13 @@ if uploaded_file is not None or use_sample:
                 df_alerts = pd.DataFrame(all_alert_records)
                 csv = df_alerts.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="📥 Tải xuống Nhật ký Cảnh báo CSV",
+                    label=f"📥 Tải xuống Nhật ký Cảnh báo CSV ({out_csv_name})",
                     data=csv,
-                    file_name="alert_log_report.csv",
+                    file_name=out_csv_name,
                     mime="text/csv",
                     use_container_width=True
                 )
+
 
         if all_alert_records:
             st.markdown("##### 📜 Danh sách Chi tiết Tất cả Cảnh báo:")

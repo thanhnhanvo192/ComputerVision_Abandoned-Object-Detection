@@ -21,8 +21,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Hệ thống Phát hiện Vật thể Bị Bỏ Quên trong Video Giám sát")
     parser.add_argument("--source", type=str, default="pets2006_3.mp4", help="Đường dẫn file video đầu vào hoặc 0 cho Webcam")
     parser.add_argument("--weights", type=str, default=config.MODEL_PATH, help="Đường dẫn file trọng số YOLO best.pt")
-    parser.add_argument("--output", type=str, default=os.path.join(config.OUTPUT_DIR, "output_result.mp4"), help="Đường dẫn file video đầu ra")
-    parser.add_argument("--save-csv", type=str, default=os.path.join(config.OUTPUT_DIR, "alert_logs.csv"), help="Đường dẫn lưu file log cảnh báo CSV")
+    parser.add_argument("--output", type=str, default=None, help="Đường dẫn file video đầu ra (mặc định tự động sinh: output/output_<tên_video>.mp4)")
+    parser.add_argument("--save-csv", type=str, default=None, help="Đường dẫn lưu file log cảnh báo CSV (mặc định: output/alert_logs_<tên_video>.csv)")
     parser.add_argument("--conf", type=float, default=config.CONF_THRESHOLD, help="Ngưỡng tin cậy nhận diện YOLO")
     parser.add_argument("--abandon-time", type=float, default=config.ABANDON_TIME_THRESHOLD, help="Thời gian (giây) đứng yên không người để phát cảnh báo")
     parser.add_argument("--owner-dist", type=float, default=config.OWNER_DISTANCE_THRESHOLD, help="Khoảng cách tối đa (pixel) giữa người và hành lý")
@@ -32,18 +32,7 @@ def parse_args():
 def main():
     args = parse_args()
     
-    print("=" * 60)
-    print(" HỆ THỐNG PHÁT HIỆN VẬT THỂ BỊ BỎ QUÊN (ABANDONED OBJECT DETECTOR)")
-    print("=" * 60)
-    print(f"[*] Model Weights: {args.weights}")
-    print(f"[*] Input Source:  {args.source}")
-    print(f"[*] Output Video:  {args.output}")
-    print(f"[*] Alert CSV:     {args.save_csv}")
-    print(f"[*] Abandon Time:  {args.abandon_time}s")
-    print(f"[*] Owner Dist:    {args.owner_dist}px")
-    print("=" * 60)
-    
-    # Khởi tạo Video Capture
+    # Khởi tạo Video Capture & Tự động sinh tên file đầu ra dựa theo video đầu vào
     source = int(args.source) if args.source.isdigit() else args.source
     
     # Kiểm tra tồn tại file video nếu source là chuỗi đường dẫn
@@ -61,6 +50,38 @@ def main():
                 source = fallback_video
             except Exception as e:
                 print(f"[!] Lỗi khi khởi tạo video mẫu: {e}")
+
+    # Tự động tạo tên file output_video và alert_csv trùng tên với source đầu vào
+    if isinstance(source, int):
+        input_base_name = f"webcam_{source}.mp4"
+    else:
+        input_base_name = os.path.basename(str(source))
+        
+    input_stem, input_ext = os.path.splitext(input_base_name)
+    if not input_ext:
+        input_ext = ".mp4"
+
+    if args.output is None:
+        if input_base_name.startswith("output_"):
+            output_video_name = input_base_name
+        else:
+            output_video_name = f"output_{input_stem}{input_ext}"
+        args.output = os.path.join(config.OUTPUT_DIR, output_video_name)
+
+    if args.save_csv is None:
+        args.save_csv = os.path.join(config.OUTPUT_DIR, f"alert_logs_{input_stem}.csv")
+
+    print("=" * 60)
+    print(" HỆ THỐNG PHÁT HIỆN VẬT THỂ BỊ BỎ QUÊN (ABANDONED OBJECT DETECTOR)")
+    print("=" * 60)
+    print(f"[*] Model Weights: {args.weights}")
+    print(f"[*] Input Source:  {source}")
+    print(f"[*] Output Video:  {args.output}")
+    print(f"[*] Alert CSV:     {args.save_csv}")
+    print(f"[*] Abandon Time:  {args.abandon_time}s")
+    print(f"[*] Owner Dist:    {args.owner_dist}px")
+    print("=" * 60)
+
 
     cap = cv2.VideoCapture(source)
     

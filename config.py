@@ -13,7 +13,7 @@ CLASS_NAMES = {
 }
 
 # Ngưỡng phát hiện YOLO (Confidence & IOU)
-CONF_THRESHOLD = 0.15
+CONF_THRESHOLD = 0.3
 IOU_THRESHOLD = 0.50
 
 TRACKER_TYPE = "bytetrack.yaml"  # Hoặc 'botsort.yaml'
@@ -22,7 +22,7 @@ TRACKER_TYPE = "bytetrack.yaml"  # Hoặc 'botsort.yaml'
 STATIONARY_MOVE_THRESHOLD = 25.0     # Khoảng cách tối đa (pixels) tâm hành lý di chuyển để coi là đứng yên
 STATIONARY_HISTORY_FRAMES = 15      # Số frame lưu lại để tính độ ổn định vị trí
 OWNER_DISTANCE_THRESHOLD = 180.0    # Khoảng cách tối đa (pixels) từ hành lý đến người gần nhất để tính là "có chủ"
-ABANDON_TIME_THRESHOLD = 5.0        # Thời gian (giây) đứng yên không người để phát cảnh báo ABANDONED
+ABANDON_TIME_THRESHOLD = 4.0        # Thời gian (giây) đứng yên không người để phát cảnh báo ABANDONED
 
 
 # Cấu hình màu sắc hiển thị (BGR for OpenCV)
