@@ -1,7 +1,7 @@
 import os
 
 # Đường dẫn mô hình YOLO đã huấn luyện
-MODEL_PATH = "weights/best.pt"
+MODEL_PATH = "weights/best_yolo26.pt"
 
 # Danh sách lớp (Class IDs) từ mô hình
 LUGGAGE_CLASS_ID = 0
@@ -13,15 +13,15 @@ CLASS_NAMES = {
 }
 
 # Ngưỡng phát hiện YOLO (Confidence & IOU)
-CONF_THRESHOLD = 0.3
+CONF_THRESHOLD = 0.2
 IOU_THRESHOLD = 0.50
 
 TRACKER_TYPE = "bytetrack.yaml"  # Hoặc 'botsort.yaml'
 
 # Các ngưỡng đánh giá Vật thể Bị bỏ quên
-STATIONARY_MOVE_THRESHOLD = 25.0     # Khoảng cách tối đa (pixels) tâm hành lý di chuyển để coi là đứng yên
+STATIONARY_MOVE_THRESHOLD = 20.0     # Khoảng cách tối đa (pixels) tâm hành lý di chuyển để coi là đứng yên
 STATIONARY_HISTORY_FRAMES = 15      # Số frame lưu lại để tính độ ổn định vị trí
-OWNER_DISTANCE_THRESHOLD = 180.0    # Khoảng cách tối đa (pixels) từ hành lý đến người gần nhất để tính là "có chủ"
+OWNER_DISTANCE_THRESHOLD = 150.0    # Khoảng cách tối đa (pixels) từ hành lý đến người gần nhất để tính là "có chủ"
 ABANDON_TIME_THRESHOLD = 4.0        # Thời gian (giây) đứng yên không người để phát cảnh báo ABANDONED
 
 

@@ -1,0 +1,2 @@
+frame_index,timestamp_sec,luggage_id,bbox_x1,bbox_y1,bbox_x2,bbox_y2,abandon_duration_sec,closest_person_dist_px
+263,8.77,6,744.150634765625,604.8822631835938,894.4905395507812,720.6775512695312,4.03,236.5
