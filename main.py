@@ -3,6 +3,7 @@ import time
 import argparse
 import os
 import sys
+import math
 import pandas as pd
 import config
 
@@ -19,7 +20,7 @@ from core.visualizer import Visualizer
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Hệ thống Phát hiện Vật thể Bị Bỏ Quên trong Video Giám sát")
-    parser.add_argument("--source", type=str, default="pets2006_3.mp4", help="Đường dẫn file video đầu vào hoặc 0 cho Webcam")
+    parser.add_argument("--source", type=str, default="video/pets2006_3.mp4", help="Đường dẫn file video đầu vào hoặc 0 cho Webcam")
     parser.add_argument("--weights", type=str, default=config.MODEL_PATH, help="Đường dẫn file trọng số YOLO best.pt")
     parser.add_argument("--output", type=str, default=None, help="Đường dẫn file video đầu ra (mặc định tự động sinh: output/output_<tên_video>.mp4)")
     parser.add_argument("--save-csv", type=str, default=None, help="Đường dẫn lưu file log cảnh báo CSV (mặc định: output/alert_logs_<tên_video>.csv)")
@@ -37,19 +38,25 @@ def main():
     
     # Kiểm tra tồn tại file video nếu source là chuỗi đường dẫn
     if isinstance(source, str) and not os.path.exists(source):
-        print(f"[!] WARNING: File video '{source}' không tồn tại!")
-        fallback_video = "pets2006_3.mp4"
-        if os.path.exists(fallback_video):
-            print(f"[*] Tự động chuyển sang sử dụng video mẫu: '{fallback_video}'")
-            source = fallback_video
+        # Thử tìm kiếm trong thư mục video/
+        candidate_path = os.path.join("video", source)
+        if os.path.exists(candidate_path):
+            source = candidate_path
         else:
-            print(f"[*] Đang tự động khởi tạo video mẫu '{fallback_video}'...")
-            try:
-                from create_sample_video import create_test_video
-                create_test_video(fallback_video)
+            print(f"[!] WARNING: File video '{source}' không tồn tại!")
+            fallback_video = "video/pets2006_3.mp4"
+            if os.path.exists(fallback_video):
+                print(f"[*] Tự động chuyển sang sử dụng video mẫu: '{fallback_video}'")
                 source = fallback_video
-            except Exception as e:
-                print(f"[!] Lỗi khi khởi tạo video mẫu: {e}")
+            else:
+                fallback_sample = "test_video.mp4"
+                print(f"[*] Đang tự động khởi tạo video mẫu '{fallback_sample}'...")
+                try:
+                    from create_sample_video import create_test_video
+                    create_test_video(fallback_sample)
+                    source = fallback_sample
+                except Exception as e:
+                    print(f"[!] Lỗi khi khởi tạo video mẫu: {e}")
 
     # Tự động tạo tên file output_video và alert_csv trùng tên với source đầu vào
     if isinstance(source, int):
@@ -94,7 +101,7 @@ def main():
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
-    if fps <= 0 or math_isnan(fps):
+    if fps <= 0 or math.isnan(fps):
         fps = 30.0
         
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))

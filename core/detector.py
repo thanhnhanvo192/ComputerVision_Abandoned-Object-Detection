@@ -1,24 +1,35 @@
 import cv2
 import numpy as np
 from ultralytics import YOLO
+from typing import Dict, Tuple
 import config
 
 class YOLODetector:
-    def __init__(self, model_path=config.MODEL_PATH, conf_thresh=config.CONF_THRESHOLD, tracker=config.TRACKER_TYPE):
+    def __init__(self, model_path: str = config.MODEL_PATH, 
+                 conf_thresh: float = config.CONF_THRESHOLD, 
+                 tracker: str = config.TRACKER_TYPE):
         """
-        Khởi tạo detector sử dụng Ultralytics YOLO11
+        Khởi tạo detector sử dụng Ultralytics YOLO11.
+        
+        Args:
+            model_path: Đường dẫn tới file trọng số (.pt)
+            conf_thresh: Ngưỡng tin cậy tối thiểu cho detection
+            tracker: Loại tracker sử dụng (bytetrack.yaml hoặc botsort.yaml)
         """
         self.model = YOLO(model_path)
         self.conf_thresh = conf_thresh
         self.tracker = tracker
         
-    def detect_and_track(self, frame):
+    def detect_and_track(self, frame: np.ndarray) -> Tuple[Dict, Dict]:
         """
-        Phát hiện và theo dõi đối tượng trong 1 frame
+        Phát hiện và theo dõi đối tượng trong 1 frame.
+        
+        Args:
+            frame: Frame ảnh BGR từ OpenCV (numpy array HxWx3)
         
         Returns:
-            luggage_detections: dict với key là track_id, value gồm bbox, center, conf
-            person_detections: dict với key là track_id, value gồm bbox, center, conf
+            luggage_detections: dict {track_id: {track_id, bbox, center, conf, class_id}}
+            person_detections:  dict {track_id: {track_id, bbox, center, conf, class_id}}
         """
         results = self.model.track(
             source=frame,
@@ -29,8 +40,8 @@ class YOLODetector:
             verbose=False
         )
         
-        luggage_detections = {}
-        person_detections = {}
+        luggage_detections: Dict[int, dict] = {}
+        person_detections: Dict[int, dict] = {}
         
         if not results or len(results) == 0:
             return luggage_detections, person_detections

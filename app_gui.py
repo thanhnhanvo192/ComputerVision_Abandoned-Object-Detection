@@ -75,21 +75,33 @@ st.sidebar.markdown("🔴 **ABANDONED**: Đứng yên không có chủ quá th�
 # BODY: Nguồn Video
 uploaded_file = st.file_uploader("Tải lên File Video Giám sát (MP4, AVI, MOV)", type=["mp4", "avi", "mov", "mkv"])
 
-# Nếu không upload file, kiểm tra xem có video test mặc định nào không
-sample_video_path = "test_video.mp4"
-use_sample = False
-if uploaded_file is None and os.path.exists(sample_video_path):
-    use_sample = st.checkbox(f"Hoặc dùng video mẫu sẵn có ({sample_video_path})", value=True)
+video_input_path = None
+raw_name = None
 
-    if uploaded_file is not None:
-        raw_name = uploaded_file.name
-        tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-        tfile.write(uploaded_file.read())
-        video_input_path = tfile.name
-    else:
-        raw_name = os.path.basename(sample_video_path)
-        video_input_path = sample_video_path
+if uploaded_file is not None:
+    raw_name = uploaded_file.name
+    tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+    tfile.write(uploaded_file.read())
+    video_input_path = tfile.name
+else:
+    # Cho phép chọn các video có sẵn trong thư mục video/ hoặc test_video.mp4
+    available_samples = []
+    if os.path.exists("video"):
+        for f in sorted(os.listdir("video")):
+            if f.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+                available_samples.append(os.path.join("video", f))
+    if os.path.exists("test_video.mp4"):
+        available_samples.append("test_video.mp4")
+        
+    if available_samples:
+        st.write("---")
+        use_sample = st.checkbox("Hoặc sử dụng video mẫu có sẵn trong hệ thống", value=True)
+        if use_sample:
+            selected_sample = st.selectbox("Chọn video thử nghiệm:", available_samples)
+            video_input_path = selected_sample
+            raw_name = os.path.basename(selected_sample)
 
+if video_input_path is not None:
     input_stem, input_ext = os.path.splitext(raw_name)
     if not input_ext:
         input_ext = ".mp4"
